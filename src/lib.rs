@@ -20,9 +20,7 @@ use blkid_sys::*;
 pub fn known_fstype(fstype: &str) -> Result<bool, BlkIdError> {
     let fstype = CString::new(fstype).expect("interior null byte in UTF-8 string");
 
-    unsafe {
-        cvt(blkid_known_fstype(fstype.as_ptr())).map(|v| v == 1)
-    }
+    unsafe { cvt(blkid_known_fstype(fstype.as_ptr())).map(|v| v == 1) }
 }
 
 pub mod cache;
@@ -40,7 +38,5 @@ pub(crate) fn cstr_to_str<'a>(value: *const libc::c_char) -> Option<&'a str> {
         return None;
     }
 
-    unsafe {
-        CStr::from_ptr(value).to_str().ok()
-    }
+    unsafe { CStr::from_ptr(value).to_str().ok() }
 }
