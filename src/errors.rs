@@ -1,5 +1,4 @@
 use std::io;
-use std::ptr;
 
 /// Custom error handling for the library
 #[derive(Debug, Error)]
@@ -28,13 +27,13 @@ impl CResult for i64 {
 
 impl<T> CResult for *const T {
     fn is_error(self) -> bool {
-        self == ptr::null()
+        self.is_null()
     }
 }
 
 impl<T> CResult for *mut T {
     fn is_error(self) -> bool {
-        self == ptr::null_mut()
+        self.is_null()
     }
 }
 

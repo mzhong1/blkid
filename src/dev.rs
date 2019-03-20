@@ -19,7 +19,7 @@ pub struct Devs<'a> {
 }
 
 impl<'a> Drop for Devs<'a> {
-    fn drop(&mut self) -> () {
+    fn drop(&mut self) {
         unsafe { blkid_dev_iterate_end(self.iter) }
     }
 }
@@ -65,7 +65,7 @@ impl Dev {
     }
 
     pub fn verify(&self, cache: &Cache) -> bool {
-        unsafe { blkid_verify(cache.cache, self.dev) != ptr::null_mut() }
+        unsafe { !blkid_verify(cache.cache, self.dev).is_null() }
     }
 
     pub fn tags(&self) -> Tags {

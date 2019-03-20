@@ -25,7 +25,7 @@ impl<'a> Tags<'a> {
 }
 
 impl<'a> Drop for Tags<'a> {
-    fn drop(&mut self) -> () {
+    fn drop(&mut self) {
         unsafe { blkid_tag_iterate_end(self.iter) }
     }
 }

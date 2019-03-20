@@ -23,15 +23,22 @@ pub fn known_fstype(fstype: &str) -> Result<bool, BlkIdError> {
     unsafe { cvt(blkid_known_fstype(fstype.as_ptr())).map(|v| v == 1) }
 }
 
-pub mod cache;
-pub mod dev;
-pub mod part_list;
-pub mod partition;
-pub mod probe;
-pub mod tag;
-
+mod cache;
+mod dev;
 mod errors;
-use errors::*;
+mod part_list;
+mod partition;
+mod probe;
+mod table;
+mod tag;
+
+pub use cache::*;
+pub use dev::*;
+pub use errors::*;
+pub use part_list::*;
+pub use probe::*;
+pub use table::*;
+pub use tag::*;
 
 pub(crate) fn cstr_to_str<'a>(value: *const libc::c_char) -> Option<&'a str> {
     if value.is_null() {

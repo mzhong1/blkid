@@ -1,26 +1,34 @@
 use crate::part_list::PartList;
 use crate::partition::Partition;
 use blkid_sys::*;
-use libc;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
+use std::io;
+use std::marker::PhantomData;
 use std::path::Path;
 use std::ptr;
-use std::ptr::NonNull;
-use {cvt, BlkIdError, CResult};
+use {cvt, BlkIdError};
 
 pub struct Probe(blkid_probe);
+
+pub enum ProbeResult {
+    Success,
+    NothingFound,
+    Ambivalent,
+}
 
 impl Probe {
     pub fn new() -> Result<Probe, BlkIdError> {
         unsafe { Ok(Probe(cvt(blkid_new_probe())?)) }
     }
 
-    pub fn new_from_filename<P: AsRef<Path>>(path: P) -> Result<Probe, BlkIdError> {
+    pub fn new_from<P: AsRef<Path>>(path: P) -> Result<Probe, BlkIdError> {
         let path = CString::new(path.as_ref().as_os_str().to_string_lossy().as_ref())
             .expect("provided path contained null bytes");
 
-        unsafe { Ok(Probe(cvt(blkid_new_probe_from_filename(path.as_ptr()))?)) }
+        let probe = unsafe { Probe(cvt(blkid_new_probe_from_filename(path.as_ptr()))?) };
+
+        Ok(probe)
     }
 
     /// Calls probing functions in all enabled chains. The superblocks chain is enabled by
@@ -31,7 +39,7 @@ impl Probe {
     /// This is string-based NAME=value interface only.
     ///
     /// Returns `false` on success, and `true` when probing is done.
-    pub fn do_probe(&self) -> Result<bool, BlkIdError> {
+    pub fn probe(&self) -> Result<bool, BlkIdError> {
         unsafe { cvt(blkid_do_probe(self.0)).map(|v| v == 1) }
     }
 
@@ -47,11 +55,32 @@ impl Probe {
     /// superblocks chain.
     /// Returns Ok(0) on success, Ok(1) on success and nothing was detected, Ok(-2) if the probe
     /// was ambivalent.
-    pub fn do_safe_probe(&self) -> Result<i32, BlkIdError> {
-        unsafe { cvt(blkid_do_safeprobe(self.0)) }
+    pub fn probe_safe(&self) -> Result<ProbeResult, BlkIdError> {
+        match unsafe { blkid_do_safeprobe(self.0) } {
+            0 => Ok(ProbeResult::Success),
+            1 => Ok(ProbeResult::NothingFound),
+            -2 => Ok(ProbeResult::Ambivalent),
+            _ => Err(BlkIdError::Io(io::Error::last_os_error())),
+        }
     }
 
-    /// Fetch a value by name.
+    /// This function gathers probing results from all enabled chains.
+    ///
+    /// It is the same as `probe_safe()` but does not check for collision between probing result.
+    ///
+    /// > This is string-based NAME=value interface only.
+    ///
+    /// # Errors
+    /// Returns either `Err(why)`, `Ok(ProbeResult::Success)`, or `Ok(ProbeResult::NothingFound)`.
+    pub fn probe_full(&self) -> Result<ProbeResult, BlkIdError> {
+        match unsafe { blkid_do_fullprobe(self.0) } {
+            0 => Ok(ProbeResult::Success),
+            1 => Ok(ProbeResult::NothingFound),
+            _ => Err(BlkIdError::Io(io::Error::last_os_error())),
+        }
+    }
+
+    // Fetch a value by name.
     pub fn lookup_value<'a>(&'a self, name: &str) -> Result<&'a str, BlkIdError> {
         let name = CString::new(name).expect("provided path contained null bytes");
         let mut data_ptr: *const ::libc::c_char = ptr::null();
@@ -222,7 +251,12 @@ impl Probe {
     }
 
     pub fn get_partitions(&self) -> Result<PartList, BlkIdError> {
-        unsafe { cvt(blkid_probe_get_partitions(self.0)).map(PartList) }
+        unsafe {
+            cvt(blkid_probe_get_partitions(self.0)).map(|list| PartList {
+                list,
+                _marker: PhantomData,
+            })
+        }
     }
 
     pub fn reset(&mut self) {
