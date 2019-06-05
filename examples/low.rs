@@ -31,10 +31,15 @@ pub fn main() {
                             let partition = list
                                 .get_partition(porder)
                                 .expect("unable to read partition");
+
                             let partno = partition.get_partno().expect("failed to get partno");
-                            let part_path = PathBuf::from(format!("{}{}", dev_path, partno));
+                            let nvme = dev_path.chars().last().map_or(false, char::is_numeric);
+                            let modifier = if nvme { "p" } else { "" };
+                            let part_path =
+                                PathBuf::from(format!("{}{}{}", dev_path, modifier, partno));
                             let probe =
                                 Probe::new_from(&part_path).expect("failed to probe partition");
+
                             probe.probe_full();
 
                             println!(
