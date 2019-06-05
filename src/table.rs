@@ -1,17 +1,17 @@
 use blkid_sys::*;
 use std::ffi::CStr;
-use std::marker::PhantomData;
 use std::str;
 
-pub struct Table<'a> {
-    pub(crate) table: blkid_parttable,
-    pub(crate) _marker: PhantomData<&'a blkid_parttable>,
-}
+pub struct Table;
 
-impl<'a> Table<'a> {
+impl Table {
+    fn as_ptr(&self) -> blkid_parttable {
+        self as *const _ as *mut _
+    }
+
     pub fn get_type(&self) -> &str {
         unsafe {
-            let t = blkid_parttable_get_type(self.table);
+            let t = blkid_parttable_get_type(self.as_ptr());
             assert!(!t.is_null());
             str::from_utf8_unchecked(CStr::from_ptr(t).to_bytes())
         }

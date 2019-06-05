@@ -250,12 +250,10 @@ impl Probe {
         Ok(self)
     }
 
-    pub fn get_partitions(&self) -> Result<PartList, BlkIdError> {
+    pub fn get_partitions(&self) -> Result<&PartList, BlkIdError> {
         unsafe {
-            cvt(blkid_probe_get_partitions(self.0)).map(|list| PartList {
-                list,
-                _marker: PhantomData,
-            })
+            cvt(blkid_probe_get_partitions(self.0))
+                .map(|ptr| &*(ptr as *const _))
         }
     }
 
