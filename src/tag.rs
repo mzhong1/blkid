@@ -4,15 +4,13 @@
 // http://opensource.org/licenses/MIT> This file may not be copied, modified,
 // or distributed except according to those terms.
 
-use std::borrow::Cow;
-use std::ffi::CStr;
-use std::ptr;
+use std::{borrow::Cow, ffi::CStr, ptr};
 
 use blkid_sys::*;
 use dev::Dev;
 
 pub struct Tags<'a> {
-    pub dev: &'a Dev,
+    pub dev:  &'a Dev,
     pub iter: blkid_tag_iterate,
 }
 
@@ -25,9 +23,7 @@ impl<'a> Tags<'a> {
 }
 
 impl<'a> Drop for Tags<'a> {
-    fn drop(&mut self) {
-        unsafe { blkid_tag_iterate_end(self.iter) }
-    }
+    fn drop(&mut self) { unsafe { blkid_tag_iterate_end(self.iter) } }
 }
 
 impl<'a> Iterator for Tags<'a> {

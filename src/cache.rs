@@ -4,9 +4,7 @@
 // http://opensource.org/licenses/MIT> This file may not be copied, modified,
 // or distributed except according to those terms.
 
-use std::ffi::CString;
-use std::path::Path;
-use std::ptr;
+use std::{ffi::CString, path::Path, ptr};
 
 use crate::errors::*;
 use blkid_sys::*;
@@ -40,9 +38,7 @@ impl Cache {
     }
 
     /// Removes garbage (non-existing devices) from the cache.
-    pub fn gc(&self) {
-        unsafe { blkid_gc_cache(self.cache) }
-    }
+    pub fn gc(&self) { unsafe { blkid_gc_cache(self.cache) } }
 
     /// Probes all block devices.
     pub fn probe_all(&self) -> Result<Devs, BlkIdError> {
@@ -58,7 +54,8 @@ impl Cache {
     /// the /sys directory). Don't forget that removable devices (floppies, CDROMs, ...) could be
     /// pretty slow. It's very bad idea to call this function by default.
     ///
-    /// Note that devices which were detected by this function won't be written to blkid.tab cache file.
+    /// Note that devices which were detected by this function won't be written to blkid.tab cache
+    /// file.
     pub fn probe_all_removable(&self) -> Result<Devs, BlkIdError> {
         unsafe { cvt(blkid_probe_all_removable(self.cache))? };
         Ok(Devs::new(self))
@@ -72,7 +69,5 @@ impl Cache {
 }
 
 impl Drop for Cache {
-    fn drop(&mut self) {
-        unsafe { blkid_put_cache(self.cache) }
-    }
+    fn drop(&mut self) { unsafe { blkid_put_cache(self.cache) } }
 }

@@ -1,13 +1,17 @@
-use crate::part_list::PartList;
-use crate::partition::Partition;
+use crate::{
+    part_list::PartList,
+    topology::Topology,
+};
 use blkid_sys::*;
-use std::collections::HashMap;
-use std::ffi::{CStr, CString};
-use std::io;
-use std::marker::PhantomData;
-use std::path::Path;
-use std::ptr;
-use {cvt, BlkIdError};
+use cvt;
+use std::{
+    collections::HashMap,
+    ffi::{CStr, CString},
+    io,
+    path::Path,
+    ptr,
+};
+use BlkIdError;
 
 pub struct Probe(blkid_probe);
 
@@ -18,9 +22,7 @@ pub enum ProbeResult {
 }
 
 impl Probe {
-    pub fn new() -> Result<Probe, BlkIdError> {
-        unsafe { Ok(Probe(cvt(blkid_new_probe())?)) }
-    }
+    pub fn new() -> Result<Probe, BlkIdError> { unsafe { Ok(Probe(cvt(blkid_new_probe())?)) } }
 
     pub fn new_from<P: AsRef<Path>>(path: P) -> Result<Probe, BlkIdError> {
         let path = CString::new(path.as_ref().as_os_str().to_string_lossy().as_ref())
@@ -86,12 +88,7 @@ impl Probe {
         let mut data_ptr: *const ::libc::c_char = ptr::null();
         let mut len = 0;
         unsafe {
-            cvt::<i32>(blkid_probe_lookup_value(
-                self.0,
-                name.as_ptr(),
-                &mut data_ptr,
-                &mut len,
-            ))?;
+            cvt::<i32>(blkid_probe_lookup_value(self.0, name.as_ptr(), &mut data_ptr, &mut len))?;
             let data_value = CStr::from_ptr(data_ptr as *const ::libc::c_char);
             data_value.to_str().map_err(|_| BlkIdError::InvalidStr)
         }
@@ -116,13 +113,7 @@ impl Probe {
         let mut len = 0;
 
         unsafe {
-            cvt(blkid_probe_get_value(
-                self.0,
-                num,
-                &mut name_ptr,
-                &mut data_ptr,
-                &mut len,
-            ))?;
+            cvt(blkid_probe_get_value(self.0, num, &mut name_ptr, &mut data_ptr, &mut len))?;
             let name_value = CStr::from_ptr(name_ptr as *const ::libc::c_char);
             let data_value = CStr::from_ptr(data_ptr as *const ::libc::c_char);
             Ok((
@@ -134,42 +125,32 @@ impl Probe {
 
     /// Retrieve a HashMap of all the probed values
     pub fn get_values_map(&self) -> Result<HashMap<String, String>, BlkIdError> {
-        Ok((0..self.numof_values()?)
-            .map(|i| self.get_value(i).expect("'i' is in range"))
-            .collect())
+        Ok((0..self.numof_values()?).map(|i| self.get_value(i).expect("'i' is in range")).collect())
     }
 
-    pub fn get_devno(&self) -> u64 {
-        unsafe { blkid_probe_get_devno(self.0) }
-    }
+    pub fn get_devno(&self) -> u64 { unsafe { blkid_probe_get_devno(self.0) } }
 
-    pub fn get_wholedisk_devno(&self) -> u64 {
-        unsafe { blkid_probe_get_wholedisk_devno(self.0) }
-    }
+    pub fn get_wholedisk_devno(&self) -> u64 { unsafe { blkid_probe_get_wholedisk_devno(self.0) } }
 
     pub fn is_wholedisk(&self) -> Result<bool, BlkIdError> {
         unsafe { cvt(blkid_probe_is_wholedisk(self.0)).map(|v| v == 1) }
     }
 
-    pub fn get_size(&self) -> Result<i64, BlkIdError> {
-        unsafe { cvt(blkid_probe_get_size(self.0)) }
+    pub fn get_size(&self) -> Result<u64, BlkIdError> {
+        unsafe { cvt(blkid_probe_get_size(self.0)).map(|s| s as u64) }
     }
 
-    pub fn get_offset(&self) -> Result<i64, BlkIdError> {
-        unsafe { cvt(blkid_probe_get_offset(self.0)) }
+    pub fn get_offset(&self) -> Result<u64, BlkIdError> {
+        unsafe { cvt(blkid_probe_get_offset(self.0)).map(|s| s as u64) }
     }
 
-    pub fn get_sectorsize(&self) -> u32 {
-        unsafe { blkid_probe_get_sectorsize(self.0) }
+    pub fn get_sectorsize(&self) -> u32 { unsafe { blkid_probe_get_sectorsize(self.0) } }
+
+    pub fn get_sectors(&self) -> Result<u64, BlkIdError> {
+        unsafe { cvt(blkid_probe_get_sectors(self.0)).map(|s| s as u64) }
     }
 
-    pub fn get_sectors(&self) -> Result<i64, BlkIdError> {
-        unsafe { cvt(blkid_probe_get_sectors(self.0)) }
-    }
-
-    pub fn get_fd(&self) -> Result<i32, BlkIdError> {
-        unsafe { cvt(blkid_probe_get_fd(self.0)) }
-    }
+    pub fn get_fd(&self) -> Result<i32, BlkIdError> { unsafe { cvt(blkid_probe_get_fd(self.0)) } }
 
     /// Enables/disables the topology probing for non-binary interface.
     pub fn enable_topology(&self, enable: bool) -> Result<(), BlkIdError> {
@@ -182,33 +163,11 @@ impl Probe {
     /// WARNING: the returned object will be overwritten by the next blkid_probe_get_topology()
     /// call for the same pr. If you want to use more blkid_topopogy objects in the same time you
     /// have to create more blkid_probe handlers (see blkid_new_probe()).
-    pub fn get_topology(&self) -> Result<blkid_topology, BlkIdError> {
-        unsafe { cvt(blkid_probe_get_topology(self.0)) }
-    }
-
-    /// alignment offset in bytes or 0.
-    pub fn get_topology_alignment_offset(tp: blkid_topology) -> u64 {
-        unsafe { blkid_topology_get_alignment_offset(tp) }
-    }
-
-    /// minimum io size in bytes or 0.
-    pub fn get_topology_minimum_io_size(tp: blkid_topology) -> u64 {
-        unsafe { blkid_topology_get_minimum_io_size(tp) }
-    }
-
-    /// optimal io size in bytes or 0.
-    pub fn get_topology_optimal_io_size(tp: blkid_topology) -> u64 {
-        unsafe { blkid_topology_get_optimal_io_size(tp) }
-    }
-
-    /// logical sector size (BLKSSZGET ioctl) in bytes or 0.
-    pub fn get_topology_logical_sector_size(tp: blkid_topology) -> u64 {
-        unsafe { blkid_topology_get_logical_sector_size(tp) }
-    }
-
-    /// logical sector size (BLKSSZGET ioctl) in bytes or 0.
-    pub fn get_topology_physical_sector_size(tp: blkid_topology) -> u64 {
-        unsafe { blkid_topology_get_physical_sector_size(tp) }
+    pub fn get_topology(&self) -> Result<&Topology, BlkIdError> {
+        unsafe {
+            cvt(blkid_probe_get_topology(self.0))
+                .map(|ptr| &*(ptr as *const Topology))
+        }
     }
 
     /// Enables the partitions probing for non-binary interface.
@@ -251,15 +210,10 @@ impl Probe {
     }
 
     pub fn get_partitions(&self) -> Result<&PartList, BlkIdError> {
-        unsafe {
-            cvt(blkid_probe_get_partitions(self.0))
-                .map(|ptr| &*(ptr as *const _))
-        }
+        unsafe { cvt(blkid_probe_get_partitions(self.0)).map(|ptr| &*(ptr as *const _)) }
     }
 
-    pub fn reset(&mut self) {
-        unsafe { blkid_reset_probe(self.0) }
-    }
+    pub fn reset(&mut self) { unsafe { blkid_reset_probe(self.0) } }
 
     pub fn reset_buffers(&mut self) -> Result<i32, BlkIdError> {
         unsafe { cvt(blkid_probe_reset_buffers(self.0)) }

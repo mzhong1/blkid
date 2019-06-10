@@ -1,13 +1,10 @@
 use blkid_sys::*;
-use std::ffi::CStr;
-use std::str;
+use std::{ffi::CStr, str};
 
 pub struct Table;
 
 impl Table {
-    fn as_ptr(&self) -> blkid_parttable {
-        self as *const _ as *mut _
-    }
+    fn as_ptr(&self) -> blkid_parttable { self as *const _ as *mut _ }
 
     pub fn get_type(&self) -> &str {
         unsafe {

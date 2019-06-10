@@ -6,11 +6,9 @@ use table::Table;
 pub struct PartList;
 
 impl PartList {
-    fn as_ptr(&self) -> blkid_partlist {
-        self as *const _ as *mut _
-    }
+    fn as_ptr(&self) -> blkid_partlist { self as *const _ as *mut _ }
 
-    pub fn get_partition(&self, partition: i32) -> Option<&Partition> {
+    pub fn get_partition(&self, partition: u32) -> Option<&Partition> {
         unsafe {
             let ptr = blkid_partlist_get_partition(self.as_ptr(), partition as libc::c_int);
             if ptr.is_null() {
@@ -21,7 +19,7 @@ impl PartList {
         }
     }
 
-    pub fn get_partition_by_partno(&self, partition: i32) -> Option<&Partition> {
+    pub fn get_partition_by_partno(&self, partition: u32) -> Option<&Partition> {
         unsafe {
             let ptr =
                 blkid_partlist_get_partition_by_partno(self.as_ptr(), partition as libc::c_int);

@@ -11,9 +11,9 @@ extern crate blkid_sys;
 extern crate err_derive;
 extern crate libc;
 
-use std::ffi::{CStr, CString};
-use std::io;
-use std::ptr;
+use std::{
+    ffi::{CStr, CString},
+};
 
 use blkid_sys::*;
 
@@ -31,6 +31,7 @@ mod partition;
 mod probe;
 mod table;
 mod tag;
+mod topology;
 
 pub use cache::*;
 pub use dev::*;
@@ -39,6 +40,7 @@ pub use part_list::*;
 pub use probe::*;
 pub use table::*;
 pub use tag::*;
+pub use topology::*;
 
 pub(crate) fn cstr_to_str<'a>(value: *const libc::c_char) -> Option<&'a str> {
     if value.is_null() {
