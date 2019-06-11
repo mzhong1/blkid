@@ -9,7 +9,7 @@ authors = ["Chris Holcombe <xfactor973@gmail.com>"]
 categories = ["api-bindings"]
 
 [dependencies]
-libc = "^0.2"
+libc = "0.2"
 err-derive = "0.1.5"
 blkid-sys = { path = "./sys" }
 
