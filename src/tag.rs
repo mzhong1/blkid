@@ -7,7 +7,7 @@
 use std::{borrow::Cow, ffi::CStr, ptr};
 
 use blkid_sys::*;
-use dev::Dev;
+use crate::dev::Dev;
 
 pub struct Tags<'a> {
     pub dev:  &'a Dev,

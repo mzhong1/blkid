@@ -8,8 +8,8 @@ use std::{ffi::CString, path::Path, ptr};
 
 use crate::errors::*;
 use blkid_sys::*;
-use dev::Devs;
-use BlkIdError;
+use crate::dev::Devs;
+use crate::BlkIdError;
 
 #[derive(Debug)]
 pub struct Cache {

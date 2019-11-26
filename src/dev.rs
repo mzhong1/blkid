@@ -12,8 +12,8 @@ use std::{
 };
 
 use blkid_sys::*;
-use cache::Cache;
-use tag::Tags;
+use crate::cache::Cache;
+use crate::tag::Tags;
 
 pub struct Devs<'a> {
     pub cache: &'a Cache,

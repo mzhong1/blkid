@@ -3,7 +3,7 @@ use crate::{
     topology::Topology,
 };
 use blkid_sys::*;
-use cvt;
+use crate::cvt;
 use std::{
     collections::HashMap,
     ffi::{CStr, CString},
@@ -11,7 +11,7 @@ use std::{
     path::Path,
     ptr,
 };
-use BlkIdError;
+use crate::BlkIdError;
 
 pub struct Probe(blkid_probe);
 

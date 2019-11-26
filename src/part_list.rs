@@ -1,7 +1,7 @@
 use crate::partition::Partition;
 use blkid_sys::*;
-use errors::*;
-use table::Table;
+use crate::errors::*;
+use crate::table::Table;
 
 pub struct PartList;
 

@@ -31,14 +31,14 @@ mod table;
 mod tag;
 mod topology;
 
-pub use cache::*;
-pub use dev::*;
-pub use errors::*;
-pub use part_list::*;
-pub use probe::*;
-pub use table::*;
-pub use tag::*;
-pub use topology::*;
+pub use crate::cache::*;
+pub use crate::dev::*;
+pub use crate::errors::*;
+pub use crate::part_list::*;
+pub use crate::probe::*;
+pub use crate::table::*;
+pub use crate::tag::*;
+pub use crate::topology::*;
 
 pub(crate) fn cstr_to_str<'a>(value: *const libc::c_char) -> Option<&'a str> {
     if value.is_null() {
