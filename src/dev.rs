@@ -4,25 +4,24 @@
 // http://opensource.org/licenses/MIT> This file may not be copied, modified,
 // or distributed except according to those terms.
 
-use std::ptr;
-use std::ffi::{CStr, OsStr};
-use std::os::unix::ffi::OsStrExt;
-use std::path::Path;
+use std::{
+    ffi::{CStr, OsStr},
+    os::unix::ffi::OsStrExt,
+    path::Path,
+    ptr,
+};
 
+use blkid_sys::*;
 use cache::Cache;
 use tag::Tags;
-use blkid_sys::*;
-
 
 pub struct Devs<'a> {
     pub cache: &'a Cache,
-    pub iter: blkid_dev_iterate,
+    pub iter:  blkid_dev_iterate,
 }
 
 impl<'a> Drop for Devs<'a> {
-    fn drop(&mut self) -> () {
-        unsafe { blkid_dev_iterate_end(self.iter) }
-    }
+    fn drop(&mut self) { unsafe { blkid_dev_iterate_end(self.iter) } }
 }
 
 impl<'a> Iterator for Devs<'a> {
@@ -52,9 +51,7 @@ pub struct Dev {
 }
 
 impl Dev {
-    pub fn new(dev: blkid_dev) -> Dev {
-        Dev { dev }
-    }
+    pub fn new(dev: blkid_dev) -> Dev { Dev { dev } }
 
     pub fn name(&self) -> &Path {
         let cstr = unsafe {
@@ -66,10 +63,8 @@ impl Dev {
     }
 
     pub fn verify(&self, cache: &Cache) -> bool {
-        unsafe { blkid_verify(cache.cache, self.dev) != ptr::null_mut() }
+        unsafe { !blkid_verify(cache.cache, self.dev).is_null() }
     }
 
-    pub fn tags(&self) -> Tags {
-        Tags::new(self)
-    }
+    pub fn tags(&self) -> Tags { Tags::new(self) }
 }
