@@ -6,11 +6,11 @@
 
 use std::{borrow::Cow, ffi::CStr, ptr};
 
-use blkid_sys::*;
 use crate::dev::Dev;
+use blkid_sys::*;
 
 pub struct Tags<'a> {
-    pub dev:  &'a Dev,
+    pub dev: &'a Dev,
     pub iter: blkid_tag_iterate,
 }
 
@@ -23,7 +23,9 @@ impl<'a> Tags<'a> {
 }
 
 impl<'a> Drop for Tags<'a> {
-    fn drop(&mut self) { unsafe { blkid_tag_iterate_end(self.iter) } }
+    fn drop(&mut self) {
+        unsafe { blkid_tag_iterate_end(self.iter) }
+    }
 }
 
 impl<'a> Iterator for Tags<'a> {

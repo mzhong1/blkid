@@ -1,3 +1,4 @@
+use err_derive::*;
 use std::io;
 
 /// Custom error handling for the library
@@ -14,19 +15,27 @@ pub(crate) trait CResult: Copy {
 }
 
 impl CResult for i32 {
-    fn is_error(self) -> bool { self < 0 }
+    fn is_error(self) -> bool {
+        self < 0
+    }
 }
 
 impl CResult for i64 {
-    fn is_error(self) -> bool { self < 0 }
+    fn is_error(self) -> bool {
+        self < 0
+    }
 }
 
 impl<T> CResult for *const T {
-    fn is_error(self) -> bool { self.is_null() }
+    fn is_error(self) -> bool {
+        self.is_null()
+    }
 }
 
 impl<T> CResult for *mut T {
-    fn is_error(self) -> bool { self.is_null() }
+    fn is_error(self) -> bool {
+        self.is_null()
+    }
 }
 
 pub(crate) fn cvt<T: CResult>(result: T) -> Result<T, BlkIdError> {

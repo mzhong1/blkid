@@ -6,14 +6,9 @@
 
 //! See https://www.kernel.org/pub/linux/utils/util-linux/v2.21/libblkid-docs/index.html
 //! for the reference manual to the FFI bindings
-extern crate blkid_sys;
-#[macro_use]
-extern crate err_derive;
-extern crate libc;
+use blkid_sys::*;
 
 use std::ffi::{CStr, CString};
-
-use blkid_sys::*;
 
 pub fn known_fstype(fstype: &str) -> Result<bool, BlkIdError> {
     let fstype = CString::new(fstype).expect("interior null byte in UTF-8 string");
